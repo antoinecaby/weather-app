@@ -66,7 +66,7 @@ export default function CityView() {
   const getLoc = (ville: string) => {
     return fetch(
       "https://geocoding-api.open-meteo.com/v1/search?name=" +
-        encodeURIComponent(ville) +
+        ville +
         "&count=1&language=fr&format=json",
     )
       .then((response) => response.json())
