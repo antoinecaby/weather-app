@@ -73,9 +73,7 @@ export default function CityView() {
       .then((json) => {
         const lat = json.results?.[0]?.latitude;
         const lon = json.results?.[0]?.longitude;
-
         if (lat == null || lon == null) return;
-
         return getMeteo(String(lat), String(lon));
       });
   };

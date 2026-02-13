@@ -1,98 +1,126 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { View, Text, TextInput, Pressable } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [ville, setVille] = useState("");
+  const [favorites, setFavorites] = useState<string[]>([]);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const loadFavorites = async () => {
+    const fav = await AsyncStorage.getItem("favorites");
+    if (fav) {
+      setFavorites(JSON.parse(fav));
+    }
+  };
+
+  useEffect(() => {
+    loadFavorites();
+  }, []);
+
+  return (
+    <LinearGradient
+      colors={["#245EE8", "#1C91F5", "#1CC7F8"]}
+      style={{ flex: 1 }}
+    >
+      <View style={{ padding: 10 }}>
+        <Text
+          style={{
+            color: "#FFFFFF",
+            fontSize: 40,
+            margin: 30,
+            fontWeight: "500",
+          }}
+        >
+          Météo
+        </Text>
+
+        <TextInput
+          placeholder="Entrez une ville..."
+          placeholderTextColor="#FFFFFF99"
+          value={ville}
+          onChangeText={setVille}
+          style={{
+            borderWidth: 1,
+            borderColor: "#FFFFFF",
+            borderRadius: 10,
+            padding: 20,
+            color: "#FFFFFF",
+            fontSize: 20,
+            marginBottom: 10,
+          }}
+        />
+
+        <Pressable
+          onPress={() => {
+            const v = ville.trim();
+            if (!v) return;
+
+            router.push({
+              pathname: "/(tabs)/cityView",
+              params: { ville: v },
+            });
+          }}
+        >
+          <Text
+            style={{
+              backgroundColor: "#1CC7F8",
+              borderWidth: 1,
+              borderColor: "#1CC7F8",
+              borderRadius: 10,
+              padding: 10,
+              fontSize: 20,
+              color: "#FFFFFF",
+              textAlign: "center",
+            }}
+          >
+            Rechercher {ville}
+          </Text>
+        </Pressable>
+
+        <Text
+          style={{
+            color: "#FFFFFF",
+            fontSize: 22,
+            fontWeight: "500",
+            marginTop: 40,
+            marginBottom: 15,
+            marginLeft: 30,
+          }}
+        >
+          Villes favorites
+        </Text>
+
+        {favorites.length === 0 ? (
+          <Text style={{ color: "#FFFFFF", marginLeft: 30, fontSize: 18 }}>
+            Aucun favori pour le moment.
+          </Text>
+        ) : (
+          favorites.map((fav, idx) => (
+            <Pressable
+              key={idx}
+              onPress={() => {
+                router.push({
+                  pathname: "/(tabs)/cityView",
+                  params: { ville: fav },
+                });
+              }}
+              style={{
+                marginHorizontal: 30,
+                marginBottom: 12,
+                padding: 15,
+                borderRadius: 15,
+                backgroundColor: "rgba(255,255,255,0.2)",
+              }}
+            >
+              <Text style={{ color: "#FFF", fontSize: 20, fontWeight: "500" }}>
+                {fav}
+              </Text>
+            </Pressable>
+          ))
+        )}
+      </View>
+    </LinearGradient>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
